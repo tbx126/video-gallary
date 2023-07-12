@@ -93,14 +93,14 @@
           // Bilibili 代码逻辑
           const bvid = videoLink.videoId;
 
-          fetch(`/video-info/${bvid}`)
+          fetch(`/api/video-info?bvid=${bvid}`)
             .then(response => response.json())
             .then(data => {
               const videoTitle = data.data.title;
               const thumbnail = videoCard.querySelector("img");
               thumbnail.alt = videoTitle;
 
-              fetch(`/proxy-image?url=${encodeURIComponent(data.data.pic)}`)
+              fetch(`/api/proxy-image?url=${encodeURIComponent(data.data.pic)}`)
                 .then(response => response.blob())
                 .then(blob => {
                   const imageUrl = URL.createObjectURL(blob);
