@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Gallery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .video-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1%; /* 添加间隔 */
+        }
+
+        .video-card {
+            display: flex;
+            flex-direction: column;
+            width: calc(16.66% - 1%); /* 每行 6 个视频，每个视频占 1/6 减去间隔 */
+            box-sizing: border-box;
+            vertical-align: top;
+            margin: 0;
+            padding: 0.2%;
+        }
+
+        .thumbnail-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            position: relative; /* 新增该属性 */
+            padding-bottom: 56.25%; /* 新增该属性，16:9 宽高比 */
+            overflow: hidden; /* 新增该属性 */
+            border-radius: 10px; /* 新增该属性，设置圆角 */
+        }
+
+        img {
+            position: absolute; /* 新增该属性 */
+            top: 0; /* 新增该属性 */
+            left: 0; /* 新增该属性 */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px; /* 新增该属性，设置圆角 */
+        }
+
+        h3 {
+            font-weight: normal; /* 设置标题不加粗 */
+            font-size: 16px; /* 设置字体大小，根据您的喜好调整 */
+            line-height: 1.2; /* 设置行高以适应两行文本 */
+            max-height: 1.8em; /* 设置高度以适应两行文本，与行高的两倍相同 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 限制标题为两行 */
+            -webkit-box-orient: vertical;
+            margin: 0;
+            padding: 0.5em 0;
+            position: relative;
+            }
+    </style>
+    <script src="videoLinks.js"></script>
+</head>
+<body>
+    <h1>Video Gallery</h1>
+
+    <div class="video-gallery" id="video-gallery">
+        <!-- Video cards will be inserted here -->
+    </div>
+
+    <script type="module">
+      import videoLinks from './videoLinks.js';
+
+      const videoGallery = document.getElementById("video-gallery");
+
+      videoLinks.forEach((videoLink) => {
+        const videoCard = document.createElement("div");
+        videoCard.classList.add("video-card");
+        videoCard.innerHTML = `
+          <div class="thumbnail-container">
+            <a href="#" target="_blank">
+              <img src="" alt="">
+            </a>
+          </div>
+          <h3></h3>
+        `;
+
+        if (videoLink.platform === "bilibili") {
+          // Bilibili 代码逻辑
+          const bvid = videoLink.videoId;
+
+          fetch(`/video-info/${bvid}`)
+            .then(response => response.json())
+            .then(data => {
+              const videoTitle = data.data.title;
+              const thumbnail = videoCard.querySelector("img");
+              thumbnail.alt = videoTitle;
+
+              fetch(`/proxy-image?url=${encodeURIComponent(data.data.pic)}`)
+                .then(response => response.blob())
+                .then(blob => {
+                  const imageUrl = URL.createObjectURL(blob);
+                  thumbnail.src = imageUrl;
+                  const link = thumbnail.parentNode;
+                  link.href = `https://www.bilibili.com/video/${bvid}`;
+                })
+                .catch(error => {
+                  console.error("Error fetching video thumbnail:", error);
+                });
+
+              const h3 = videoCard.querySelector("h3");
+              h3.textContent = videoTitle;
+            })
+            .catch(error => {
+              console.error("Error fetching video info:", error);
+            });
+
+        } else if (videoLink.platform === "youtube") {
+          // YouTube 代码逻辑
+          const apiKey = 'AIzaSyCVysBsG6NfsRmpXIAssRosWd76yg4Tr_U'; // 替换为您的 YouTube API 密钥
+          const videoId = videoLink.videoId;
+          const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${apiKey}`;
+
+          fetch(apiURL)
+            .then(response => response.json())
+            .then(data => {
+              const videoInfo = data.items[0].snippet;
+              const title = videoInfo.title;
+              const thumbnailUrl = videoInfo.thumbnails.high.url;
+
+              const link = videoCard.querySelector("a");
+              link.href = `https://www.youtube.com/watch?v=${videoId}`;
+
+              const img = videoCard.querySelector("img");
+              img.src = thumbnailUrl;
+              img.alt = title;
+
+              const h3 = videoCard.querySelector("h3");
+              h3.textContent = title;
+            })
+            .catch(error => console.error('Error fetching YouTube video info:', error));
+        }
+
+        videoGallery.appendChild(videoCard);
+      });
+    </script>
+</body>
+</html>
