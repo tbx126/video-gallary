@@ -1,15 +1,6 @@
-let fetch;
-import('node-fetch').then(module => {
-  fetch = module.default;
-});
+const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
-  if (!fetch) {
-    await import('node-fetch').then(module => {
-      fetch = module.default;
-    });
-  }
-
   const bvid = req.query.bvid;
   const apiUrl = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
 

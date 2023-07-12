@@ -1,16 +1,7 @@
-let fetch;
-import('node-fetch').then(module => {
-  fetch = module.default;
-});
+const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
   const imageUrl = req.query.url;
-
-  if (!fetch) {
-    await import('node-fetch').then(module => {
-      fetch = module.default;
-    });
-  }
 
   try {
     const response = await fetch(imageUrl, {
