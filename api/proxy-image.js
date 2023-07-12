@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
 
     if (response.ok) {
       const contentType = response.headers.get('content-type');
-      res.set('Content-Type', contentType);
+      res.setHeader('Content-Type', contentType);
       response.body.pipe(res);
     } else {
       res.status(response.status).json({ error: `Error fetching image: ${response.statusText}` });
