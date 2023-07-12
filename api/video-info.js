@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-module.exports = async (req, res) => {
+const videoInfo = async (req, res) => {
   const bvid = req.query.bvid;
   const apiUrl = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
 
