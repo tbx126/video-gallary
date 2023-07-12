@@ -1,7 +1,7 @@
 const videoLinks = [
   {
     platform: "bilibili",
-    videoId: "BV1jh411K7RF",
+    videoId: "BV1xo4y1c74F",
   },
   {
     platform: "youtube",
@@ -9,11 +9,11 @@ const videoLinks = [
   },
   {
     platform: "bilibili",
-    videoId: "BV1qo4y1379s",
+    videoId: "BV1fM4y127dp",
   },
   {
     platform: "bilibili",
-    videoId: "BV1Yk4y1W7sX",
+    videoId: "BV123411m77L",
   },
   {
     platform: "youtube",
