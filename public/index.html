@@ -8,13 +8,48 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            display: flex;
+            justify-content: space-around;
+            position: relative; /* Set body to be the reference for the absolute positioning */
         }
+
+        .button-list {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            margin-right: 2em;
+        }
+
+        .button {
+            width: 50px;
+            height: 50px;
+            background-image: url('https://pic3.zhimg.com/v2-9b376093137c85ef242d4e383229e3ce_xld.jpeg');
+            background-size: cover;
+            margin-bottom: 1em;
+            cursor: pointer;
+            border: none;
+        }
+
+        .button.active {
+            outline: 2px solid blue;
+        }
+
+        .sidebar {
+            position: fixed; /* This will make the sidebar fixed */
+            top: 50%; /* Centers the sidebar vertically */
+            left: 0; /* Keeps the sidebar on the left side of the page */
+            transform: translateY(-50%); /* This moves the sidebar up by half of its height, effectively centering it */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+}
 
         .video-gallery {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 1%; /* 添加间隔 */
+            margin-left: 80px; /* This will ensure that the video gallery does not overlap with the sidebar, adjust as needed */
         }
 
         .video-card {
@@ -66,85 +101,124 @@
     <script src="videoLinks.js"></script>
 </head>
 <body>
+    <div class="sidebar" id="button-list">
+        <!-- Buttons will be inserted here -->
+    </div>
     <div class="video-gallery" id="video-gallery">
         <!-- Video cards will be inserted here -->
     </div>
+    <!-- Your script code here -->
 
     <script type="module">
-      import videoLinks from './videoLinks.js';
+        import videoLinks from './videoLinks.js';
 
-      const videoGallery = document.getElementById("video-gallery");
+        // 在页面加载完成后执行
+        window.onload = () => {
+            // 获取元素
+            const videoGallery = document.getElementById('video-gallery');
+            const buttonList = document.getElementById('button-list');
 
-      videoLinks.forEach((videoLink) => {
-        const videoCard = document.createElement("div");
-        videoCard.classList.add("video-card");
-        videoCard.innerHTML = `
-          <div class="thumbnail-container">
-            <a href="#" target="_blank">
-              <img src="" alt="">
-            </a>
-          </div>
-          <h3></h3>
-        `;
+            // 创建按钮
+            for (let i = 1; i <= 5; i++) {
+                const button = document.createElement('button');
+                button.classList.add('button');
+                button.textContent = i;
+                button.onclick = () => {
+                    // 清除其他按钮的活动状态
+                    document.querySelectorAll('.button').forEach(btn => btn.classList.remove('active'));
 
-        if (videoLink.platform === "bilibili") {
-          // Bilibili 代码逻辑
-          const bvid = videoLink.videoId;
+                    // 将当前按钮设置为活动状态
+                    button.classList.add('active');
 
-          fetch(`/api/video-info?bvid=${bvid}`)
-            .then(response => response.json())
-            .then(data => {
-              const videoTitle = data.data.title;
-              const thumbnail = videoCard.querySelector("img");
-              thumbnail.alt = videoTitle;
+                    // 隐藏所有视频卡
+                    document.querySelectorAll('.video-card').forEach(card => card.style.display = 'none');
 
-              fetch(`/api/proxy-image?url=${encodeURIComponent(data.data.pic)}`)
-                .then(response => response.blob())
-                .then(blob => {
-                  const imageUrl = URL.createObjectURL(blob);
-                  thumbnail.src = imageUrl;
-                  const link = thumbnail.parentNode;
-                  link.href = `https://www.bilibili.com/video/${bvid}`;
-                })
-                .catch(error => {
-                  console.error("Error fetching video thumbnail:", error);
-                });
+                    // 显示当前组的视频卡
+                    document.querySelectorAll(`.video-card.group-${i}`).forEach(card => card.style.display = 'flex');
+                };
 
-              const h3 = videoCard.querySelector("h3");
-              h3.textContent = videoTitle;
-            })
-            .catch(error => {
-              console.error("Error fetching video info:", error);
+                // 将按钮添加到按钮列表
+                buttonList.appendChild(button);
+            }
+
+            // 遍历 videoLinks，创建并添加视频卡
+            videoLinks.forEach((videoLink, index) => {
+                const videoCard = document.createElement('div');
+                videoCard.classList.add('video-card', `group-${videoLink.group}`);
+                videoCard.innerHTML = `
+                    <div class="thumbnail-container">
+                        <a href="#" target="_blank">
+                            <img src="" alt="">
+                        </a>
+                    </div>
+                    <h3></h3>
+                `;
+
+                if (videoLink.platform === "bilibili") {
+                    // Bilibili 代码逻辑
+                    const bvid = videoLink.videoId;
+
+                    fetch(`/api/video-info?bvid=${bvid}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const videoTitle = data.data.title;
+                            const thumbnail = videoCard.querySelector("img");
+                            thumbnail.alt = videoTitle;
+
+                            fetch(`/api/proxy-image?url=${encodeURIComponent(data.data.pic)}`)
+                                .then(response => response.blob())
+                                .then(blob => {
+                                    const imageUrl = URL.createObjectURL(blob);
+                                    thumbnail.src = imageUrl;
+                                    const link = thumbnail.parentNode;
+                                    link.href = `https://www.bilibili.com/video/${bvid}`;
+                                })
+                                .catch(error => {
+                                    console.error("Error fetching video thumbnail:", error);
+                                });
+
+                            const h3 = videoCard.querySelector("h3");
+                            h3.textContent = videoTitle;
+                        })
+                        .catch(error => {
+                            console.error("Error fetching video info:", error);
+                        });
+
+                } else if (videoLink.platform === "youtube") {
+                    // YouTube 代码逻辑
+                    const apiKey = 'AIzaSyCVysBsG6NfsRmpXIAssRosWd76yg4Tr_U'; // 替换为您的 YouTube API 密钥
+                    const videoId = videoLink.videoId;
+                    const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${apiKey}`;
+
+                    fetch(apiURL)
+                        .then(response => response.json())
+                        .then(data => {
+                            const videoInfo = data.items[0].snippet;
+                            const title = videoInfo.title;
+                            const thumbnailUrl = videoInfo.thumbnails.high.url;
+
+                            const link = videoCard.querySelector("a");
+                            link.href = `https://www.youtube.com/watch?v=${videoId}`;
+
+                            const img = videoCard.querySelector("img");
+                            img.src = thumbnailUrl;
+                            img.alt = title;
+
+                            const h3 = videoCard.querySelector("h3");
+                            h3.textContent = title;
+                        })
+                        .catch(error => console.error('Error fetching YouTube video info:', error));
+                }
+
+                // 将视频卡添加到视频库
+                videoGallery.appendChild(videoCard);
+
+                // 默认激活第一个按钮
+                if (index === 0) {
+                    buttonList.children[0].click();
+                }
             });
-
-        } else if (videoLink.platform === "youtube") {
-          // YouTube 代码逻辑
-          const apiKey = 'AIzaSyCVysBsG6NfsRmpXIAssRosWd76yg4Tr_U'; // 替换为您的 YouTube API 密钥
-          const videoId = videoLink.videoId;
-          const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${apiKey}`;
-
-          fetch(apiURL)
-            .then(response => response.json())
-            .then(data => {
-              const videoInfo = data.items[0].snippet;
-              const title = videoInfo.title;
-              const thumbnailUrl = videoInfo.thumbnails.high.url;
-
-              const link = videoCard.querySelector("a");
-              link.href = `https://www.youtube.com/watch?v=${videoId}`;
-
-              const img = videoCard.querySelector("img");
-              img.src = thumbnailUrl;
-              img.alt = title;
-
-              const h3 = videoCard.querySelector("h3");
-              h3.textContent = title;
-            })
-            .catch(error => console.error('Error fetching YouTube video info:', error));
-        }
-
-        videoGallery.appendChild(videoCard);
-      });
+        };
     </script>
 </body>
 </html>
